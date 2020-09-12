@@ -2,18 +2,29 @@ import React, { useContext } from 'react';
 import * as firebase from "firebase/app";
 import "firebase/auth";
 import firebaseConfig from './firebase.config';
-import {UserContext} from '../../App.js';
+import {UserContext} from '../../App'
+import { useHistory, useLocation } from 'react-router-dom';
 
 
 const Login = () => {
 
     const [loggedInUser, setLoggedInUser] = useContext(UserContext)
 
-    const handleGoogleSignIn = () => {
-          
+    // to make right way in which route user wanted to go
+    const history = useHistory();
+    const location = useLocation();
+    const { from } = location.state || { from: { pathname: "/" } };
+
+    if(firebase.apps.length === 0) { // to avoid repeating initialization
+        
           // Initialize Firebase
           firebase.initializeApp(firebaseConfig);
 
+
+    }
+
+    const handleGoogleSignIn = () => {
+          
 
         const provider = new firebase.auth.GoogleAuthProvider();
         firebase.auth().signInWithPopup(provider).then(function(result) {
@@ -25,17 +36,13 @@ const Login = () => {
                 name: displayName,
                 email: email,
             }
-            setLoggedInUser(signedInUser)
+            setLoggedInUser(signedInUser);
+            history.replace(from)
           
           }).catch(function(error) {
             // Handle Errors here.
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            // The email of the user's account used.
-            var email = error.email;
-            // The firebase.auth.AuthCredential type that was used.
-            var credential = error.credential;
-            // ...
+            const errorMessage = error.message;
+            console.log(errorMessage);
           });
     }
     return (
